@@ -25,6 +25,21 @@ func dataSourceShellScript() *schema.Resource {
 					},
 				},
 			},
+			"arguments": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"read": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+					},
+				},
+			},
 			"environment": {
 				Type:     schema.TypeMap,
 				Optional: true,
@@ -63,6 +78,16 @@ func dataSourceShellScriptRead(d *schema.ResourceData, meta interface{}) error {
 	c := l[0].(map[string]interface{})
 	value := c["read"]
 
+	args := d.Get("arguments").([]interface{})
+	arguments := make([]string, 0)
+
+	if len(args) > 0 {
+		arg := args[0].(map[string]interface{})
+		for _, v := range arg["read"].([]interface{}) {
+			arguments = append(arguments, v.(string))
+		}
+	}
+
 	command := value.(string)
 	client := meta.(*Client)
 	envVariables := getEnvironmentVariables(client, d)
@@ -78,6 +103,7 @@ func dataSourceShellScriptRead(d *schema.ResourceData, meta interface{}) error {
 
 	commandConfig := &CommandConfig{
 		Command:              command,
+		Arguments:            arguments,
 		Environment:          environment,
 		SensitiveEnvironment: sensitiveEnvironment,
 		WorkingDirectory:     workingDirectory,

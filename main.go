@@ -1,8 +1,8 @@
 package main
 
 import (
+	"github.com/Placidina/terraform-provider-shell/shell"
 	"github.com/hashicorp/terraform-plugin-sdk/plugin"
-	"github.com/scottwinkler/terraform-provider-shell/shell"
 )
 
 func main() {
