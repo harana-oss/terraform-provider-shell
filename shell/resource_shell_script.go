@@ -46,6 +46,42 @@ func resourceShellScript() *schema.Resource {
 					},
 				},
 			},
+			"arguments": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"create": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"update": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"read": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"delete": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+					},
+				},
+			},
 			"triggers": {
 				Type:     schema.TypeMap,
 				Optional: true,
@@ -195,6 +231,17 @@ func create(d *schema.ResourceData, meta interface{}, stack []Action) error {
 
 	l := d.Get("lifecycle_commands").([]interface{})
 	c := l[0].(map[string]interface{})
+
+	args := d.Get("arguments").([]interface{})
+	arguments := make([]string, 0)
+
+	if len(args) > 0 {
+		arg := args[0].(map[string]interface{})
+		for _, v := range arg["create"].([]interface{}) {
+			arguments = append(arguments, v.(string))
+		}
+	}
+
 	command := c["create"].(string)
 	client := meta.(*Client)
 	envVariables := getEnvironmentVariables(client, d)
@@ -208,6 +255,7 @@ func create(d *schema.ResourceData, meta interface{}, stack []Action) error {
 
 	commandConfig := &CommandConfig{
 		Command:              command,
+		Arguments:            arguments,
 		Environment:          environment,
 		SensitiveEnvironment: sensitiveEnvironment,
 		WorkingDirectory:     workingDirectory,
@@ -252,6 +300,16 @@ func read(d *schema.ResourceData, meta interface{}, stack []Action) error {
 		return nil
 	}
 
+	args := d.Get("arguments").([]interface{})
+	arguments := make([]string, 0)
+
+	if len(args) > 0 {
+		arg := args[0].(map[string]interface{})
+		for _, v := range arg["read"].([]interface{}) {
+			arguments = append(arguments, v.(string))
+		}
+	}
+
 	client := meta.(*Client)
 	envVariables := getEnvironmentVariables(client, d)
 	environment := formatEnvironmentVariables(envVariables)
@@ -265,6 +323,7 @@ func read(d *schema.ResourceData, meta interface{}, stack []Action) error {
 
 	commandConfig := &CommandConfig{
 		Command:              command,
+		Arguments:            arguments,
 		Environment:          environment,
 		SensitiveEnvironment: sensitiveEnvironment,
 		WorkingDirectory:     workingDirectory,
@@ -306,6 +365,7 @@ func restoreOldResourceData(rd *schema.ResourceData, except ...string) (err erro
 	}
 	for _, k := range []string{
 		"lifecycle_commands",
+		"arguments",
 		"triggers",
 
 		"environment",
@@ -340,6 +400,16 @@ func update(d *schema.ResourceData, meta interface{}, stack []Action) error {
 	c := l[0].(map[string]interface{})
 	command := c["update"].(string)
 
+	args := d.Get("arguments").([]interface{})
+	arguments := make([]string, 0)
+
+	if len(args) > 0 {
+		arg := args[0].(map[string]interface{})
+		for _, v := range arg["update"].([]interface{}) {
+			arguments = append(arguments, v.(string))
+		}
+	}
+
 	client := meta.(*Client)
 	envVariables := getEnvironmentVariables(client, d)
 	environment := formatEnvironmentVariables(envVariables)
@@ -353,6 +423,7 @@ func update(d *schema.ResourceData, meta interface{}, stack []Action) error {
 
 	commandConfig := &CommandConfig{
 		Command:              command,
+		Arguments:            arguments,
 		Environment:          environment,
 		SensitiveEnvironment: sensitiveEnvironment,
 		WorkingDirectory:     workingDirectory,
@@ -390,6 +461,16 @@ func delete(d *schema.ResourceData, meta interface{}, stack []Action) error {
 	c := l[0].(map[string]interface{})
 	command := c["delete"].(string)
 
+	args := d.Get("arguments").([]interface{})
+	arguments := make([]string, 0)
+
+	if len(args) > 0 {
+		arg := args[0].(map[string]interface{})
+		for _, v := range arg["delete"].([]interface{}) {
+			arguments = append(arguments, v.(string))
+		}
+	}
+
 	client := meta.(*Client)
 	envVariables := getEnvironmentVariables(client, d)
 	environment := formatEnvironmentVariables(envVariables)
@@ -403,6 +484,7 @@ func delete(d *schema.ResourceData, meta interface{}, stack []Action) error {
 
 	commandConfig := &CommandConfig{
 		Command:              command,
+		Arguments:            arguments,
 		Environment:          environment,
 		SensitiveEnvironment: sensitiveEnvironment,
 		WorkingDirectory:     workingDirectory,

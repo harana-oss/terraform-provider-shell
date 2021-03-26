@@ -227,10 +227,10 @@ func testAccShellScriptConfig_complete(outValue string) string {
 	return fmt.Sprintf(`
 	resource "shell_script" "complete" {
 		lifecycle_commands {
-			create = file("test-fixtures/scripts/create.sh")
-			read   = file("test-fixtures/scripts/read.sh")
-			update = file("test-fixtures//scripts/update.sh")
-			delete = file("test-fixtures/scripts/delete.sh")
+			create = file("tests/fixtures/create.sh")
+			read   = file("tests/fixtures/read.sh")
+			update = file("tests/fixtures/update.sh")
+			delete = file("tests/fixtures/delete.sh")
 		}
 
 		environment = {
@@ -562,4 +562,41 @@ func testAccShellShellScriptConfig_previousOutput(filename string, value bool) (
 			}
 		}
 	`, filename, value)
+}
+
+func TestAccShellShellScript_arguments(t *testing.T) {
+	file := "/tmp/test-file-" + acctest.RandString(16)
+	resource.Test(t, resource.TestCase{
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccShellShellScriptConfig_arguments(file, "123"),
+				Check:  resource.TestCheckResourceAttr("shell_script.content", "output.content", "123"),
+			},
+			{
+				Config: testAccShellShellScriptConfig_arguments(file, "321"),
+				Check:  resource.TestCheckResourceAttr("shell_script.content", "output.content", "321"),
+			},
+		},
+	})
+}
+
+func testAccShellShellScriptConfig_arguments(filename, value string) (conf string) {
+	return fmt.Sprintf(`
+		resource "shell_script" "content" {
+			lifecycle_commands {
+				create = "tests/arguments/create.sh"
+				read = "tests/arguments/read.sh"
+				update = "tests/arguments/update.sh"
+				delete = "tests/arguments/delete.sh"
+			}
+			arguments {
+				create = ["%s", "%s"]
+				read = ["%s"]
+				update = ["%s", "%s"]
+				delete = ["%s"]
+			}
+			interpreter = ["/bin/sh"]
+		}
+	`, filename, value, filename, filename, value, filename)
 }

@@ -16,6 +16,7 @@ import (
 // CommandConfig is a helper struct
 type CommandConfig struct {
 	Command              string
+	Arguments            []string
 	Environment          []string
 	SensitiveEnvironment []string
 	Interpreter          []string
@@ -36,6 +37,11 @@ func runCommand(c *CommandConfig) (map[string]string, error) {
 	// Setup the command
 	shell := c.Interpreter[0]
 	flags := append(c.Interpreter[1:], c.Command)
+
+	for _, argument := range c.Arguments {
+		flags = append(flags, argument)
+	}
+
 	cmd := exec.Command(shell, flags...)
 	if c.Action != ActionCreate {
 		input, _ := json.Marshal(c.PreviousOutput)
