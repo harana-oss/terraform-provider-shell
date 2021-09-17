@@ -1,6 +1,8 @@
 package shell
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/mutexkv"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -23,28 +25,15 @@ func Provider() terraform.ResourceProvider {
 				Sensitive: true,
 				Elem:      schema.TypeString,
 			},
-			"interpreter": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
-			"enable_parallelism": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
+			"shell_script": {
+				Type:     schema.TypeString,
+				Required: true,
 			},
 		},
 
-		DataSourcesMap: map[string]*schema.Resource{
-			"shell_script": dataSourceShellScript(),
-		},
-
-		ResourcesMap: map[string]*schema.Resource{
-			"shell_script": resourceShellScript(),
-		},
-		ConfigureFunc: providerConfigure,
+		DataSourcesMap: map[string]*schema.Resource{},
+		ResourcesMap:   map[string]*schema.Resource{},
+		ConfigureFunc:  providerConfigure,
 	}
 }
 
@@ -57,17 +46,14 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	if v, ok := d.GetOk("sensitive_environment"); ok {
 		sensitiveEnvironment = v.(map[string]interface{})
 	}
-	var interpreter []interface{}
-	if v, ok := d.GetOk("interpreter"); ok {
-		interpreter = v.([]interface{})
-	}
-	enableParallelism := d.Get("enable_parallelism").(bool)
+	shellScript := d.Get("shell_script").(string)
+
+	fmt.Println("Hello")
 
 	config := Config{
 		Environment:          environment,
 		SensitiveEnvironment: sensitiveEnvironment,
-		Interpreter:          interpreter,
-		EnableParallelism:    enableParallelism,
+		ShellScript:          shellScript,
 	}
 	return config.Client()
 }

@@ -21,7 +21,6 @@ type CommandConfig struct {
 	SensitiveEnvironment []string
 	Interpreter          []string
 	WorkingDirectory     string
-	Action               Action
 	PreviousOutput       map[string]string
 	EnableParallelism    bool
 }
@@ -43,11 +42,10 @@ func runCommand(c *CommandConfig) (map[string]string, error) {
 	}
 
 	cmd := exec.Command(shell, flags...)
-	if c.Action != ActionCreate {
-		input, _ := json.Marshal(c.PreviousOutput)
-		stdin := bytes.NewReader(input)
-		cmd.Stdin = stdin
-	}
+	input, _ := json.Marshal(c.PreviousOutput)
+	stdin := bytes.NewReader(input)
+	cmd.Stdin = stdin
+
 	cmd.Env = append(append(os.Environ(), c.Environment...), c.SensitiveEnvironment...)
 	prStdout, pwStdout, err := os.Pipe()
 	if err != nil {
@@ -111,10 +109,10 @@ func runCommand(c *CommandConfig) (map[string]string, error) {
 		errorS += "StdOut: \n" + sanitizeString(stdOutput, secretValues) + "\n\n"
 		errorS += "StdErr: \n" + sanitizeString(stdError, secretValues) + "\n\n"
 		errorS += fmt.Sprintf("Env: \n%s\n\n", c.Environment)
-		if c.Action != ActionCreate {
-			stdin, _ := json.Marshal(c.PreviousOutput)
-			errorS += fmt.Sprintf("StdIn: \n'%s'\n", stdin)
-		}
+
+		stdin, _ := json.Marshal(c.PreviousOutput)
+		errorS += fmt.Sprintf("StdIn: \n'%s'\n", stdin)
+
 		return nil, errors.New(errorS)
 	}
 

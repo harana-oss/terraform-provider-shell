@@ -9,15 +9,6 @@ import (
 	"github.com/mitchellh/go-linereader"
 )
 
-func printStackTrace(actions []Action) {
-	log.Printf("-------------------------")
-	log.Printf("[DEBUG] Current stack:")
-	for _, action := range actions {
-		log.Printf("[DEBUG] -- %s", action)
-	}
-	log.Printf("-------------------------")
-}
-
 func logOutput(logCh chan string, secretValues []string) {
 	for line := range logCh {
 		sanitizedLine := sanitizeString(line, secretValues)
